@@ -1,0 +1,39 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Url {
+  id          String   @id @default(cuid())
+  shortCode   String   @unique
+  originalUrl String
+  title       String?
+  clicks      Int      @default(0)
+  isActive    Boolean  @default(true)
+  expiresAt   DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  events      ClickEvent[]
+
+  @@map("urls")
+}
+
+model ClickEvent {
+  id         String   @id @default(cuid())
+  urlId      String
+  url        Url      @relation(fields: [urlId], references: [id])
+  ip         String?
+  country    String?
+  city       String?
+  device     String?
+  browser    String?
+  os         String?
+  referer    String?
+  clickedAt  DateTime @default(now())
+
+  @@map("click_events")
+}

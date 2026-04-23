@@ -1,0 +1,52 @@
+{
+  "uid": "url-shortener-main",
+  "title": "URL Shortener — Observability",
+  "tags": ["url-shortener"],
+  "timezone": "browser",
+  "schemaVersion": 38,
+  "refresh": "10s",
+  "panels": [
+    {
+      "id": 1, "type": "stat", "title": "URLs Created Total",
+      "gridPos": { "x": 0, "y": 0, "w": 6, "h": 4 },
+      "targets": [{ "expr": "url_shortener_urls_created_total", "datasource": "Prometheus" }],
+      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "thresholds": { "steps": [{ "color": "blue", "value": null }] } } }
+    },
+    {
+      "id": 2, "type": "stat", "title": "Total Redirects",
+      "gridPos": { "x": 6, "y": 0, "w": 6, "h": 4 },
+      "targets": [{ "expr": "sum(url_shortener_redirects_total)", "datasource": "Prometheus" }],
+      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "thresholds": { "steps": [{ "color": "green", "value": null }] } } }
+    },
+    {
+      "id": 3, "type": "stat", "title": "Cache Hit Rate",
+      "gridPos": { "x": 12, "y": 0, "w": 6, "h": 4 },
+      "targets": [{ "expr": "rate(url_shortener_cache_hits_total[5m]) / (rate(url_shortener_cache_hits_total[5m]) + rate(url_shortener_cache_misses_total[5m]))", "datasource": "Prometheus" }],
+      "fieldConfig": { "defaults": { "unit": "percentunit", "color": { "mode": "thresholds" }, "thresholds": { "steps": [{ "color": "red", "value": null }, { "color": "yellow", "value": 0.5 }, { "color": "green", "value": 0.8 }] } } }
+    },
+    {
+      "id": 4, "type": "stat", "title": "P95 Redirect Latency",
+      "gridPos": { "x": 18, "y": 0, "w": 6, "h": 4 },
+      "targets": [{ "expr": "histogram_quantile(0.95, rate(url_shortener_redirect_duration_ms_bucket[5m]))", "datasource": "Prometheus" }],
+      "fieldConfig": { "defaults": { "unit": "ms", "color": { "mode": "thresholds" }, "thresholds": { "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 50 }, { "color": "red", "value": 200 }] } } }
+    },
+    {
+      "id": 5, "type": "timeseries", "title": "Redirects Over Time",
+      "gridPos": { "x": 0, "y": 4, "w": 12, "h": 8 },
+      "targets": [{ "expr": "rate(url_shortener_redirects_total[1m])", "legendFormat": "{{short_code}}", "datasource": "Prometheus" }]
+    },
+    {
+      "id": 6, "type": "timeseries", "title": "Cache Hits vs Misses",
+      "gridPos": { "x": 12, "y": 4, "w": 12, "h": 8 },
+      "targets": [
+        { "expr": "rate(url_shortener_cache_hits_total[1m])", "legendFormat": "Cache Hits", "datasource": "Prometheus" },
+        { "expr": "rate(url_shortener_cache_misses_total[1m])", "legendFormat": "Cache Misses", "datasource": "Prometheus" }
+      ]
+    },
+    {
+      "id": 7, "type": "logs", "title": "Application Logs",
+      "gridPos": { "x": 0, "y": 12, "w": 24, "h": 8 },
+      "targets": [{ "expr": "{app=\"url-shortener\"}", "datasource": "Loki" }]
+    }
+  ]
+}

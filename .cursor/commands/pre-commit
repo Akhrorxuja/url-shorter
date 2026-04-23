@@ -1,0 +1,21 @@
+#!/bin/sh
+# URL Shortener pre-commit checks
+set -e
+echo "🔍 Running pre-commit checks..."
+
+# No console.log
+LOGS=$(grep -r "console\.log" backend/src --include="*.ts" || true)
+if [ -n "$LOGS" ]; then echo "❌ Found console.log — use LoggerService"; exit 1; fi
+
+# No raw SQL
+SQL=$(grep -rE "\`\s*(SELECT|INSERT|UPDATE|DELETE)" backend/src --include="*.ts" || true)
+if [ -n "$SQL" ]; then echo "❌ Found raw SQL — use Prisma"; exit 1; fi
+
+# Redis cache invalidation check — if url.update exists, redis.del should too
+UPDATE=$(grep -r "prisma.url.update" backend/src --include="*.ts" || true)
+if [ -n "$UPDATE" ]; then
+  DEL=$(grep -r "redis.del" backend/src --include="*.ts" || true)
+  if [ -z "$DEL" ]; then echo "⚠️  url.update found but no redis.del — did you invalidate cache?"; fi
+fi
+
+echo "✅ All checks passed!"
